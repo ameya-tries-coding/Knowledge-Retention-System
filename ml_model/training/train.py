@@ -1,14 +1,34 @@
-import sys
 import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Input
+from tensorflow.keras.optimizers import Adam
 
 from preprocessing.preprocess import load_and_process_data, normalize
-from models.lstm_model import build_model
+
+# 🔹 Base directory (ml_model folder)
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+# 🔹 Paths
+DATA_PATH = os.path.join(BASE_DIR, "data", "your_dataset.csv")
+MODEL_SAVE_PATH = os.path.join(BASE_DIR, "saved_models", "model.h5")
 
 
-DATA_PATH = "A:/Knowlegde retention/ml_model/data/your_dataset.csv"
-MODEL_PATH = "../saved_models/model.h5"
+def build_model(input_dim):
+    model = Sequential([
+        Input(shape=(input_dim,)),
+        Dense(64, activation="relu"),
+        Dense(32, activation="relu"),
+        Dense(1, activation="sigmoid")
+    ])
+
+    model.compile(
+        optimizer=Adam(learning_rate=0.001),
+        loss="mse",
+        metrics=["mae"]
+    )
+
+    return model
 
 
 def main():
@@ -22,13 +42,16 @@ def main():
     model = build_model(X.shape[1])
 
     print("🚀 Training...")
-    model.fit(X, y, epochs=20, batch_size=32)
+    model.fit(X, y, epochs=20, batch_size=32, verbose=1)
 
     print("💾 Saving model...")
-    os.makedirs("../saved_models", exist_ok=True)
-    model.save(MODEL_PATH)
 
-    print("✅ Training complete!")
+    # Ensure folder exists
+    os.makedirs(os.path.dirname(MODEL_SAVE_PATH), exist_ok=True)
+
+    model.save(MODEL_SAVE_PATH)
+
+    print(f"✅ Model saved at: {MODEL_SAVE_PATH}")
 
 
 if __name__ == "__main__":
